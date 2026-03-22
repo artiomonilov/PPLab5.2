@@ -10,9 +10,19 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Preia citat aleatoriu")
         self.resize(600, 300)
         
-        citat_zilnic = self.alege_citat("citate.txt")
+        citat_zilnic = self.randomCitat("citate.txt")
 
-        print(citat_zilnic)
+        widget_central = QWidget()
+        layout = QVBoxLayout()
+        
+        eticheta_citat = QLabel(citat_zilnic)
+        eticheta_citat.setAlignment(Qt.AlignCenter)
+        eticheta_citat.setWordWrap(True)
+        eticheta_citat.setStyleSheet("font-size: 18px; font-style: italic; padding: 20px; font-family: 'Segoe UI';")
+        
+        layout.addWidget(eticheta_citat)
+        widget_central.setLayout(layout)
+        self.setCentralWidget(widget_central)
 
     def randomCitat(self, locatie):
         if not os.path.exists(locatie):
@@ -20,7 +30,6 @@ class MainWindow(QMainWindow):
         try:
             with open(locatie, "r", encoding="utf-8") as file:
                 linii = [linie.strip() for linie in file.readlines() if linie.strip()]
-                print(linii)
             if not linii:
                 return "Fișierul de citate este gol."
             return random.choice(linii)
