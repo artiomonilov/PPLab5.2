@@ -11,7 +11,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Preia citat aleatoriu")
         self.resize(600, 300)
         
-        citat_zilnic = self.randomCitat("citate.txt")
+        # citat_zilnic = self.randomCitat("citate.txt")
+        citat_zilnic = self.preia_citat_random()
 
         widget_central = QWidget()
         layout = QVBoxLayout()
@@ -25,6 +26,21 @@ class MainWindow(QMainWindow):
         widget_central.setLayout(layout)
         self.setCentralWidget(widget_central)
 
+    def preia_citat_random(self):
+        conn = sqlite3.connect("quotes.db")
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT content FROM quotes")
+        rezultate = cursor.fetchall()
+        
+        conn.close()
+        
+        if not rezultate:
+            return "Nimic gasit"
+        
+        return random.choice(rezultate)[0]
+    
+    
     def randomCitat(self, locatie):
         if not os.path.exists(locatie):
             return "Fișierul citate.txt nu a putut fi găsit."
@@ -37,34 +53,66 @@ class MainWindow(QMainWindow):
         except Exception as e:
             return f"Eroare la citirea fișierului: {str(e)}"
 
+    def add_quote(author, content):
+        conn = sqlite3.connect("quotes.db")
+        cursor = conn.cursor()
+        
+        cursor.execute("INSERT INTO quotes (author, content) VALES (?, ?)",
+            (author, content))
+
+        conn.commit()
+        conn.close()
+        
+    def add_jr(date, val):
+        conn = sqlite3.connect("journal.db")
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "INSERT INTO entries (date, content) VALUES (?, ?)",
+            (date, val))
+
+        conn.commit()
+        conn.close()
+    
+    def get_quotes():
+        conn = sqlite3.connect("quotes.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM quotes")
+        data = cursor.fetchall()
+        
+        conn.close()
+        return data
+        
+
+    def init_dbs(self):
+        quotesConn = sqlite3.connect("quotes.db")
+        quotesCursor = quotesConn.cursor()
+        quotesCursor.execute("""
+            CREATE TABLE IF NOT EXISTS quotes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            author TEXT,
+            content TEXT
+        )
+        """)
+        quotesConn.commit()
+        quotesConn.close()
+    
+        jurnalConn = sqlite3.connect("journal.db")
+        jurnalCursor = jurnalConn.cursor()
+        jurnalCursor.execute("""
+            CREATE TABLE IF NOT EXISTS entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            content TEXT
+        ) """)
+        jurnalConn.commit()
+        jurnalConn.close()
+
 if __name__ == '__main__':
-    quotesConn = sqlite3.connect("quotes.db")
-    quotesCursor = quotesConn.cursor()
+
     
-    quotesCursor.execute("""
-CREATE TABLE IF NOT EXISTS quotes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    author TEXT,
-    content TEXT
-)
-""")
-    
-    quotesConn.commit()
-    quotesConn.close()
-    
-    jurnalConn = sqlite3.connect("journal.db")
-    jurnalCursor = jurnalConn.cursor()
-    
-    jurnalCursor.execute("""CREATE TABLE IF NOT EXISTS entries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    content TEXT
-    ) """)
-    jurnalConn.commit()
-    jurnalConn.close()
-    
-    
-    # app = QApplication(sys.argv)
-    # window = MainWindow()
-    # window.show()
-    # sys.exit(app.exec_())
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    window.init_dbs()
+    sys.exit(app.exec_())
