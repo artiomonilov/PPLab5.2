@@ -1,6 +1,7 @@
 ﻿import sys
 import random
 import os
+import sqlite3
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QFrame
 from PyQt5.QtCore import Qt
 
@@ -37,7 +38,33 @@ class MainWindow(QMainWindow):
             return f"Eroare la citirea fișierului: {str(e)}"
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    quotesConn = sqlite3.connect("quotes.db")
+    quotesCursor = quotesConn.cursor()
+    
+    quotesCursor.execute("""
+CREATE TABLE IF NOT EXISTS quotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    author TEXT,
+    content TEXT
+)
+""")
+    
+    quotesConn.commit()
+    quotesConn.close()
+    
+    jurnalConn = sqlite3.connect("journal.db")
+    jurnalCursor = jurnalConn.cursor()
+    
+    jurnalCursor.execute("""CREATE TABLE IF NOT EXISTS entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT,
+    content TEXT
+    ) """)
+    jurnalConn.commit()
+    jurnalConn.close()
+    
+    
+    # app = QApplication(sys.argv)
+    # window = MainWindow()
+    # window.show()
+    # sys.exit(app.exec_())
