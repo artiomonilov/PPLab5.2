@@ -20,7 +20,3 @@ erDiagram
         TEXT content
     }
 ```
-
-## Observații
-
-- Dacă vrei un model relațional mai bogat, poți muta ambele tabele în aceeași bază și adăuga relații (de exemplu utilizatori, categorii, etichete).
